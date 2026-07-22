@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Precio de Compra — COOCENTRAL</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap');
+
+  :root {
+    --v:      #1a6b3a;
+    --v2:     #2a8a4d;
+    --vs:     #e8f5ec;
+    --c:      #6b3a1a;
+    --cs:     #f5ede8;
+    --o:      #9a7010;
+    --t:      #1a1a1a;
+    --ts:     #5e6470;
+    --bd:     #e2e5ea;
+    --bg:     #f2f3f5;
+    --w:      #ffffff;
+    --sh:     0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
+    --r:      12px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--t);
+    min-height: 100vh;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--v);
+    color: white;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  }
+  .h-ico {
+    width: 42px; height: 42px;
+    background: white;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .h-text h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(1.1rem, 4vw, 1.5rem);
+    letter-spacing: .3px;
+    line-height: 1.1;
+  }
+  .h-text p {
+    font-size: clamp(.65rem, 2.5vw, .76rem);
+    opacity: .78;
+    margin-top: 1px;
+  }
+  .h-date {
+    margin-left: auto;
+    background: rgba(255,255,255,.14);
+    border-radius: 8px;
+    padding: 5px 12px;
+    font-size: .72rem;
+    text-align: right;
+    white-space: nowrap;
+    line-height: 1.4;
+  }
+  .h-date strong { display: block; font-weight: 700; }
+
+  /* ── LAYOUT ── */
+  main {
+    max-width: 1020px;
+    margin: 0 auto;
+    padding: 20px 16px 32px;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 16px;
+  }
+
+  /* columnas por sección */
+  .col-6  { grid-column: span 6; }
+  .col-12 { grid-column: span 12; }
+
+  /* tablet */
+  @media (max-width: 700px) {
+    .col-6 { grid-column: span 12; }
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--w);
+    border-radius: var(--r);
+    box-shadow: var(--sh);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .card-hd {
+    padding: 11px 16px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: .85rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-shrink: 0;
+  }
+  .hd-v { background: var(--v); }
+  .hd-c { background: var(--c); }
+  .hd-o { background: var(--o); }
+  .card-bd { padding: 12px 16px; flex: 1; }
+
+  /* ── CAMPOS ── */
+  .field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f2f5;
+  }
+  .field:last-child { border-bottom: none; }
+
+  .field label {
+    font-size: .74rem;
+    font-weight: 600;
+    color: var(--ts);
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    flex: 1;
+    min-width: 0;
+    /* wrap en móvil */
+    white-space: normal;
+    line-height: 1.3;
+  }
+
+  .field input,
+  .field .cv {
+    width: 140px;
+    min-width: 100px;
+    flex-shrink: 0;
+    padding: 7px 10px;
+    border-radius: 8px;
+    font-size: .88rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    text-align: right;
+  }
+  .field input {
+    border: 1.5px solid var(--bd);
+    color: var(--t);
+    background: var(--bg);
+    transition: border-color .15s, box-shadow .15s;
+    -moz-appearance: textfield;
+  }
+  .field input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .field input:focus {
+    outline: none;
+    border-color: var(--v2);
+    box-shadow: 0 0 0 3px rgba(42,138,77,.13);
+    background: white;
+  }
+  .field .cv {
+    border: 1px solid #eaecf0;
+    color: var(--ts);
+    background: #f8f9fb;
+  }
+
+  /* pantallas muy pequeñas: stack label/input */
+  @media (max-width: 360px) {
+    .field { flex-direction: column; align-items: flex-start; }
+    .field input, .field .cv { width: 100%; }
+  }
+
+  /* ── FILAS RESULTADO ── */
+  .rrow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f2f5;
+  }
+  .rrow:last-child { border-bottom: none; }
+  .rrow .rl {
+    font-size: .74rem;
+    font-weight: 600;
+    color: var(--ts);
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    flex: 1;
+    min-width: 0;
+    line-height: 1.3;
+  }
+  .rrow .rv {
+    font-size: .88rem;
+    font-weight: 700;
+    text-align: right;
+    color: var(--t);
+    background: var(--bg);
+    border-radius: 7px;
+    padding: 6px 10px;
+    min-width: 140px;
+    flex-shrink: 0;
+    border: 1px solid var(--bd);
+    white-space: nowrap;
+  }
+  .rrow.hl-v .rv {
+    background: var(--vs);
+    color: var(--v);
+    border-color: #a8d9b8;
+    font-size: .92rem;
+  }
+  @media (max-width: 360px) {
+    .rrow { flex-direction: column; align-items: flex-start; }
+    .rrow .rv { width: 100%; min-width: 0; }
+  }
+
+  /* ── PRECIOS FINALES ── */
+  .pf-wrap {
+    padding: 14px 16px 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 480px) {
+    .pf-wrap { grid-template-columns: 1fr; }
+  }
+
+  .pbox {
+    border-radius: 11px;
+    padding: 18px 16px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .pbox-v { background: var(--v); color: white; }
+  .pbox-c { background: var(--c); color: white; }
+
+  .pbox .pet {
+    font-size: .64rem;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    opacity: .8;
+  }
+  .pbox .pmonto {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(1.55rem, 5vw, 2rem);
+    font-weight: 700;
+    line-height: 1.1;
+    word-break: break-all;
+  }
+  .pbox .psub { font-size: .65rem; opacity: .65; }
+  .pbox .pbadge {
+    display: inline-block;
+    background: rgba(255,255,255,.18);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: .7rem;
+    margin-top: 4px;
+  }
+
+  .fnc-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 16px;
+    background: #fffbf0;
+    border-top: 1px solid #f0e8c0;
+  }
+  .fnc-row .fl { font-size: .74rem; font-weight: 700; color: #7a600a; text-transform: uppercase; letter-spacing: .4px; }
+  .fnc-row .fv { font-size: .92rem; font-weight: 700; color: #7a600a; margin-left: auto; white-space: nowrap; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 16px;
+    font-size: .7rem;
+    color: var(--ts);
+    border-top: 1px solid var(--bd);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-ico">☕</div>
+  <div class="h-text">
+    <h1>COOCENTRAL</h1>
+    <p>Calculadora de Precio de Compra de Café</p>
+  </div>
+  <div class="h-date" id="hd"></div>
+</header>
+
+<main>
+
+  <!-- Parámetros de Mercado -->
+  <div class="card col-6">
+    <div class="card-hd hd-v">📊 Mercado</div>
+    <div class="card-bd">
+      <div class="field"><label>Bolsa (US¢/lb)</label>   <input type="number" id="bolsa"  value="316.65"   step="0.01"  oninput="calc()"></div>
+      <div class="field"><label>Diferencial (US¢/lb)</label><input type="number" id="dif"    value="65"       step="0.5"   oninput="calc()"></div>
+      <div class="field"><label>Dólar (COP/$)</label>    <input type="number" id="dolar"  value="3220"     step="1"     oninput="calc()"></div>
+      <div class="field"><label>FNC (COP/carga)</label>  <input type="number" id="fnc"    value="2385000"  step="1000"  oninput="calc()"></div>
+    </div>
+  </div>
+
+  <!-- Factores de Calidad -->
+  <div class="card col-6">
+    <div class="card-hd hd-c">⚙️ Calidad y Gastos</div>
+    <div class="card-bd">
+      <div class="field"><label>Factor (%)</label>             <input type="number" id="factor" value="88"    step="0.1" oninput="calc()"></div>
+      <div class="field"><label>Excelso (kg/carga)</label>     <span class="cv" id="d_excelso">—</span></div>
+      <div class="field"><label>Merma (kg/carga)</label>       <span class="cv" id="d_merma">22.50</span></div>
+      <div class="field"><label>Kilo Pasilla (COP/kg)</label>  <input type="number" id="kpas"   value="19000" step="100" oninput="calc()"></div>
+      <div class="field"><label>Gastos COOCENTRAL (¢/lb)</label><input type="number" id="gastos"   value="35" step="0.5" oninput="calc()"></div>
+      <div class="field"><label>Gastos Comerciantes (¢/lb)</label><input type="number" id="gastos_c" value="25" step="0.5" oninput="calc()"></div>
+    </div>
+  </div>
+
+  <!-- Cálculos Intermedios -->
+  <div class="card col-6">
+    <div class="card-hd hd-v">🧮 Intermedios</div>
+    <div class="card-bd">
+      <div class="rrow"><span class="rl">Saco Excelso (COP/saco)</span><span class="rv" id="r_saco">—</span></div>
+      <div class="rrow"><span class="rl">Kilo Excelso (COP/kg)</span>  <span class="rv" id="r_kilo">—</span></div>
+      <div class="rrow"><span class="rl">Excelso / Carga</span>         <span class="rv" id="r_exc_c">—</span></div>
+      <div class="rrow"><span class="rl">Pasilla</span>                  <span class="rv" id="r_pas">—</span></div>
+      <div class="rrow hl-v"><span class="rl">Precio Bruto</span>        <span class="rv" id="r_bruto">—</span></div>
+    </div>
+  </div>
+
+  <!-- Deducciones -->
+  <div class="card col-6">
+    <div class="card-hd hd-c">📉 Deducciones</div>
+    <div class="card-bd">
+      <div class="rrow"><span class="rl">Precio Máx. Compra</span>  <span class="rv" id="r_pmax">—</span></div>
+      <div class="rrow"><span class="rl">Margen (5%)</span>          <span class="rv" id="r_margen">—</span></div>
+      <div class="rrow"><span class="rl">Compra Sin Margen</span>    <span class="rv" id="r_csm">—</span></div>
+      <div class="rrow"><span class="rl">Margen Comercio (5%)</span> <span class="rv" id="r_mc">—</span></div>
+    </div>
+  </div>
+
+  <!-- Precios Finales -->
+  <div class="card col-12">
+    <div class="card-hd hd-o">✅ Precios Finales de Compra</div>
+    <div class="pf-wrap">
+      <div class="pbox pbox-v">
+        <div class="pet">Precio de Compra · COOCENTRAL</div>
+        <div class="pmonto" id="r_pc">—</div>
+        <div class="psub">COP / carga</div>
+        <div class="pbadge" id="b_m">Margen: —</div>
+      </div>
+      <div class="pbox pbox-c">
+        <div class="pet">Compra Comercio</div>
+        <div class="pmonto" id="r_cc">—</div>
+        <div class="psub">COP / carga</div>
+        <div class="pbadge" id="b_mc">Margen: —</div>
+      </div>
+    </div>
+    <div class="fnc-row">
+      <span class="fl">📌 Referencia FNC</span>
+      <span class="fv" id="r_fnc">—</span>
+    </div>
+  </div>
+
+</main>
+
+<footer>Fórmulas idénticas al Excel original · Actualiza los campos para recalcular · COOCENTRAL</footer>
+
+<script>
+  // Fecha
+  const d = new Date();
+  document.getElementById('hd').innerHTML =
+    `<strong>${d.toLocaleDateString('es-CO',{weekday:'long'})}</strong>` +
+    d.toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'});
+
+  const fmt  = n => '$ ' + Math.round(n).toLocaleString('es-CO');
+  const fmtd = n => n.toFixed(2);
+  const gv   = id => parseFloat(document.getElementById(id).value) || 0;
+  const sv   = (id, n) => document.getElementById(id).textContent = fmt(n);
+
+  function calc() {
+    const bolsa    = gv('bolsa');
+    const dif      = gv('dif');
+    const dolar    = gv('dolar');
+    const fnc      = gv('fnc');
+    const factor   = gv('factor');
+    const kpas     = gv('kpas');
+    const gastos   = gv('gastos');
+    const gastos_c = gv('gastos_c');
+
+    // F5: EXCELSO = (70/factor)*125
+    const excelso  = (70 / factor) * 125;
+    // F6: MERMA = 125*18%
+    const merma    = 125 * 0.18;
+    // C9: SACO EXCELSO = 0.7 * 2.20462 * (bolsa+dif) * dolar
+    const saco     = 0.7 * 2.20462 * (bolsa + dif) * dolar;
+    // C10: KILO EXCELSO = saco/70
+    const kilo_ex  = saco / 70;
+    // C12: EXCELSO/CARGA = kilo_ex * 125 * 70 / factor
+    const exc_c    = kilo_ex * 125 * 70 / factor;
+    // C13: PASILLA = kpas * (125 - excelso - merma)
+    const pasilla  = kpas * (125 - excelso - merma);
+    // C15: PRECIO BRUTO
+    const pb       = exc_c + pasilla;
+    // C19: PRECIO MÁX = pb - (gastos*dolar/100)*70*2.20462
+    const pmax     = pb - (gastos   * dolar / 100) * 70 * 2.20462;
+    // F19: COMPRA SIN MARGEN
+    const csm      = pb - (gastos_c * dolar / 100) * 70 * 2.20462;
+    // C21: MARGEN = pmax*5%
+    const margen   = pmax * 0.05;
+    // F21: MARGEN COMERCIO = csm*5%
+    const margen_c = csm  * 0.05;
+    // C23: PRECIO COMPRA
+    const pc       = pmax - margen;
+    // F23: COMPRA COMERCIO
+    const cc       = csm  - margen_c;
+    // C24: REFERENCIA FNC = 0.95*(fnc*94/88)
+    const ref_fnc  = 0.95 * (fnc * 94 / 88);
+
+    document.getElementById('d_excelso').textContent = fmtd(excelso);
+    document.getElementById('d_merma').textContent   = fmtd(merma);
+
+    sv('r_saco',   saco);
+    sv('r_kilo',   kilo_ex);
+    sv('r_exc_c',  exc_c);
+    sv('r_pas',    pasilla);
+    sv('r_bruto',  pb);
+    sv('r_pmax',   pmax);
+    sv('r_margen', margen);
+    sv('r_csm',    csm);
+    sv('r_mc',     margen_c);
+    sv('r_pc',     pc);
+    sv('r_cc',     cc);
+    sv('r_fnc',    ref_fnc);
+
+    document.getElementById('b_m').textContent  = 'Margen: ' + fmt(margen);
+    document.getElementById('b_mc').textContent = 'Margen: ' + fmt(margen_c);
+  }
+
+  calc();
+</script>
+</body>
+</html>

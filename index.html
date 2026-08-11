@@ -235,27 +235,27 @@
   <div class="card col-6">
     <div class="card-header ch-b">⚖️ Punto de Equilibrio</div>
     <div class="card-body">
-      <p style="font-size:.75rem;color:var(--ts);margin-bottom:10px;">Valores mínimos para que el margen sea <strong>≥ 0</strong></p>
+      <p style="font-size:.75rem;color:var(--ts);margin-bottom:10px;">¿Cuánto puede <strong>caer/subir</strong> cada variable antes de que el margen sea cero?</p>
       <div class="eq-grid">
         <div class="eq-box">
-          <div class="eq-lbl">Bolsa mínima</div>
+          <div class="eq-lbl">Bolsa puede caer</div>
           <div class="eq-val" id="eq-bolsa">—</div>
-          <div class="eq-sub">US¢/lb</div>
+          <div class="eq-sub">US¢/lb por debajo del actual</div>
         </div>
         <div class="eq-box">
-          <div class="eq-lbl">TRM mínima</div>
+          <div class="eq-lbl">TRM puede caer</div>
           <div class="eq-val" id="eq-dolar">—</div>
-          <div class="eq-sub">COP/$</div>
+          <div class="eq-sub">COP/$ por debajo del actual</div>
         </div>
         <div class="eq-box">
-          <div class="eq-lbl">Factor mínimo</div>
+          <div class="eq-lbl">Factor puede caer</div>
           <div class="eq-val" id="eq-factor">—</div>
-          <div class="eq-sub">%</div>
+          <div class="eq-sub">puntos % por debajo del actual</div>
         </div>
         <div class="eq-box">
-          <div class="eq-lbl">Gastos máximos</div>
+          <div class="eq-lbl">Gastos pueden subir</div>
           <div class="eq-val" id="eq-gastos">—</div>
-          <div class="eq-sub">¢/lb</div>
+          <div class="eq-sub">¢/lb por encima del actual</div>
         </div>
       </div>
     </div>
@@ -401,50 +401,48 @@
     setAlerta('alerta-comercio',   'alerta-m-txt', null, pct_m, 'Comercio');
 
     // ── PUNTO DE EQUILIBRIO ──────────────────────────────────────────
-    // Bolsa mínima para que pmax = precio_compra (margen = 0)
-    // pb = exc_c + pasilla; pmax = pb - gastos*dolar/100*70*2.20462 = 0 → pb = gastos*dolar/100*70*2.20462
-    // exc_c = kilo_ex * 125*70/factor; kilo_ex = 0.7*2.20462*(bolsa+dif)*dolar/70
-    // exc_c = 0.7*2.20462*(bolsa+dif)*dolar * 125/factor
-    // pasilla es constante respecto a bolsa
-    // exc_c + pasilla = gastos*dolar/100*70*2.20462
-    // 0.7*2.20462*(bolsa_eq+dif)*dolar*125/factor = gastos*dolar/100*70*2.20462 - pasilla
+    // Mostramos cuánto puede CAER/SUBIR cada variable desde el valor actual
+    // antes de que pmax = 0 (margen = 0)
+
     const pasilla_eq = kpas * (125 - excelso - merma);
-    const denom_bolsa = 0.7 * 2.20462 * dolar * 125 / factor;
-    const bolsa_eq = denom_bolsa > 0
-      ? ((gastos * dolar / 100) * 70 * 2.20462 - pasilla_eq) / denom_bolsa - dif
-      : 0;
+    const gastos_cop  = (gastos * dolar / 100) * 70 * 2.20462;
 
-    // TRM mínima (bolsa fija, despejamos dolar)
-    // exc_c = 0.7*2.20462*(bolsa+dif)*dolar_eq*125/factor
-    // pasilla constante (usa merma/factor del factor actual)
-    // pmax = exc_c + pasilla - gastos*dolar_eq/100*70*2.20462 = 0
-    // dolar_eq*(0.7*2.20462*(bolsa+dif)*125/factor - gastos/100*70*2.20462) = -pasilla
-    const A = 0.7 * 2.20462 * (bolsa + dif) * 125 / factor - (gastos / 100) * 70 * 2.20462;
-    const dolar_eq = A !== 0 ? -pasilla_eq / A : 0;
+    // Cuánto puede caer la BOLSA (mantiene todo lo demás)
+    // pmax=0 → exc_c + pasilla = gastos_cop
+    // exc_c = 0.7*2.20462*(bolsaEq+dif)*dolar*125/factor
+    // bolsaEq = (gastos_cop - pasilla_eq) / (0.7*2.20462*dolar*125/factor) - dif
+    const denom_b  = 0.7 * 2.20462 * dolar * 125 / factor;
+    const bolsaEq  = denom_b > 0 ? (gastos_cop - pasilla_eq) / denom_b - dif : 0;
+    const caida_bolsa = bolsa - bolsaEq;  // cuánto puede caer
 
-    // Factor mínimo (despejamos factor)
-    // exc_c = 0.7*2.20462*(bolsa+dif)*dolar * 125 / factor_eq
-    // pasilla = kpas*(125 - (70/factor_eq)*125 - merma)
-    // pmax = exc_c + pasilla - gastos*dolar/100*70*2.20462 = 0
-    // Numéricamente por bisección
-    let flo = 1, fhi = 200, factor_eq = factor;
-    for(let i=0; i<60; i++){
-      const fm = (flo+fhi)/2;
+    // Cuánto puede caer la TRM (mantiene todo lo demás)
+    // D*(0.7*2.20462*(bolsa+dif)*125/factor - gastos/100*70*2.20462) = -pasilla_eq
+    const Av   = 0.7 * 2.20462 * (bolsa + dif) * 125 / factor - (gastos / 100) * 70 * 2.20462;
+    const dolarEq   = Av !== 0 ? -pasilla_eq / Av : 0;
+    const caida_dolar = dolar - dolarEq;
+
+    // Cuánto puede caer el FACTOR (bisección)
+    let flo = 1, fhi = factor;
+    for(let i=0; i<80; i++){
+      const fm  = (flo+fhi)/2;
       const ex2 = (70/fm)*125;
-      const exc2 = 0.7*2.20462*(bolsa+dif)*dolar*125/fm;
-      const pas2 = kpas*(125-ex2-merma);
-      const pm2  = exc2+pas2-(gastos*dolar/100)*70*2.20462;
+      const ec2 = 0.7*2.20462*(bolsa+dif)*dolar*125/fm;
+      const pa2 = kpas*(125-ex2-merma);
+      const pm2 = ec2+pa2-gastos_cop;
       if(pm2 > 0) fhi = fm; else flo = fm;
     }
-    factor_eq = (flo+fhi)/2;
+    const factorEq    = (flo+fhi)/2;
+    const caida_factor = factor - factorEq;
 
-    // Gastos máximos
-    const gastos_eq = pb > 0 ? pb / ((dolar / 100) * 70 * 2.20462) : 0;
+    // Cuánto pueden subir los GASTOS
+    // gastos_eq*dolar/100*70*2.20462 = pb → gastos_eq = pb/((dolar/100)*70*2.20462)
+    const gastos_eq   = pb / ((dolar / 100) * 70 * 2.20462);
+    const subida_gastos = gastos_eq - gastos;
 
-    document.getElementById('eq-bolsa').textContent  = bolsa_eq.toFixed(2);
-    document.getElementById('eq-dolar').textContent  = Math.round(dolar_eq).toLocaleString('es-CO');
-    document.getElementById('eq-factor').textContent = factor_eq.toFixed(2);
-    document.getElementById('eq-gastos').textContent = gastos_eq.toFixed(2);
+    document.getElementById('eq-bolsa').textContent  = caida_bolsa.toFixed(2);
+    document.getElementById('eq-dolar').textContent  = Math.round(caida_dolar).toLocaleString('es-CO');
+    document.getElementById('eq-factor').textContent = caida_factor.toFixed(2);
+    document.getElementById('eq-gastos').textContent = subida_gastos.toFixed(2);
 
     // ── SENSIBILIDAD ─────────────────────────────────────────────────
     const vars = [

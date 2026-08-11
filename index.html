@@ -231,31 +231,31 @@
     </div>
   </div>
 
-  <!-- ═══ PUNTO DE EQUILIBRIO ═══ -->
+  <!-- ═══ IMPACTO POR PUNTO ═══ -->
   <div class="card col-6">
-    <div class="card-header ch-b">⚖️ Punto de Equilibrio</div>
+    <div class="card-header ch-b">⚖️ Impacto en Precio de Compra</div>
     <div class="card-body">
-      <p style="font-size:.75rem;color:var(--ts);margin-bottom:10px;">¿Cuánto puede <strong>caer/subir</strong> cada variable antes de que el margen sea cero?</p>
+      <p style="font-size:.75rem;color:var(--ts);margin-bottom:10px;">¿Cuánto cambia el <strong>Precio de Compra</strong> por cada unidad que sube o baja?</p>
       <div class="eq-grid">
         <div class="eq-box">
-          <div class="eq-lbl">Bolsa puede caer</div>
+          <div class="eq-lbl">Por cada 1 US¢/lb de bolsa</div>
           <div class="eq-val" id="eq-bolsa">—</div>
-          <div class="eq-sub">US¢/lb por debajo del actual</div>
+          <div class="eq-sub">COP / carga</div>
         </div>
         <div class="eq-box">
-          <div class="eq-lbl">TRM puede caer</div>
+          <div class="eq-lbl">Por cada $100 de TRM</div>
           <div class="eq-val" id="eq-dolar">—</div>
-          <div class="eq-sub">COP/$ por debajo del actual</div>
+          <div class="eq-sub">COP / carga</div>
         </div>
         <div class="eq-box">
-          <div class="eq-lbl">Factor puede caer</div>
+          <div class="eq-lbl">Por cada 1% de Factor</div>
           <div class="eq-val" id="eq-factor">—</div>
-          <div class="eq-sub">puntos % por debajo del actual</div>
+          <div class="eq-sub">COP / carga</div>
         </div>
         <div class="eq-box">
-          <div class="eq-lbl">Gastos pueden subir</div>
+          <div class="eq-lbl">Por cada 1¢/lb de Gastos</div>
           <div class="eq-val" id="eq-gastos">—</div>
-          <div class="eq-sub">¢/lb por encima del actual</div>
+          <div class="eq-sub">COP / carga</div>
         </div>
       </div>
     </div>
@@ -400,49 +400,22 @@
     setAlerta('alerta-coocentral', 'alerta-c-txt', null, pct_c, 'COOCENTRAL');
     setAlerta('alerta-comercio',   'alerta-m-txt', null, pct_m, 'Comercio');
 
-    // ── PUNTO DE EQUILIBRIO ──────────────────────────────────────────
-    // Mostramos cuánto puede CAER/SUBIR cada variable desde el valor actual
-    // antes de que pmax = 0 (margen = 0)
+    // ── IMPACTO POR PUNTO ───────────────────────────────────────────
+    // Cuánto cambia el precio de compra por cada unidad de cada variable
+    const imp_bolsa  = calcPrecio(bolsa+1, dif, dolar,  factor, merma, kpas, gastos).pc
+                     - calcPrecio(bolsa-1, dif, dolar,  factor, merma, kpas, gastos).pc;
+    const imp_dolar  = calcPrecio(bolsa, dif, dolar+100, factor, merma, kpas, gastos).pc
+                     - calcPrecio(bolsa, dif, dolar-100, factor, merma, kpas, gastos).pc;
+    const imp_factor = calcPrecio(bolsa, dif, dolar, factor+1,  merma, kpas, gastos).pc
+                     - calcPrecio(bolsa, dif, dolar, factor-1,  merma, kpas, gastos).pc;
+    const imp_gastos = calcPrecio(bolsa, dif, dolar, factor, merma, kpas, gastos+1).pc
+                     - calcPrecio(bolsa, dif, dolar, factor, merma, kpas, gastos-1).pc;
 
-    const pasilla_eq = kpas * (125 - excelso - merma);
-    const gastos_cop  = (gastos * dolar / 100) * 70 * 2.20462;
-
-    // Cuánto puede caer la BOLSA (mantiene todo lo demás)
-    // pmax=0 → exc_c + pasilla = gastos_cop
-    // exc_c = 0.7*2.20462*(bolsaEq+dif)*dolar*125/factor
-    // bolsaEq = (gastos_cop - pasilla_eq) / (0.7*2.20462*dolar*125/factor) - dif
-    const denom_b  = 0.7 * 2.20462 * dolar * 125 / factor;
-    const bolsaEq  = denom_b > 0 ? (gastos_cop - pasilla_eq) / denom_b - dif : 0;
-    const caida_bolsa = bolsa - bolsaEq;  // cuánto puede caer
-
-    // Cuánto puede caer la TRM (mantiene todo lo demás)
-    // D*(0.7*2.20462*(bolsa+dif)*125/factor - gastos/100*70*2.20462) = -pasilla_eq
-    const Av   = 0.7 * 2.20462 * (bolsa + dif) * 125 / factor - (gastos / 100) * 70 * 2.20462;
-    const dolarEq   = Av !== 0 ? -pasilla_eq / Av : 0;
-    const caida_dolar = dolar - dolarEq;
-
-    // Cuánto puede caer el FACTOR (bisección)
-    let flo = 1, fhi = factor;
-    for(let i=0; i<80; i++){
-      const fm  = (flo+fhi)/2;
-      const ex2 = (70/fm)*125;
-      const ec2 = 0.7*2.20462*(bolsa+dif)*dolar*125/fm;
-      const pa2 = kpas*(125-ex2-merma);
-      const pm2 = ec2+pa2-gastos_cop;
-      if(pm2 > 0) fhi = fm; else flo = fm;
-    }
-    const factorEq    = (flo+fhi)/2;
-    const caida_factor = factor - factorEq;
-
-    // Cuánto pueden subir los GASTOS
-    // gastos_eq*dolar/100*70*2.20462 = pb → gastos_eq = pb/((dolar/100)*70*2.20462)
-    const gastos_eq   = pb / ((dolar / 100) * 70 * 2.20462);
-    const subida_gastos = gastos_eq - gastos;
-
-    document.getElementById('eq-bolsa').textContent  = caida_bolsa.toFixed(2);
-    document.getElementById('eq-dolar').textContent  = Math.round(caida_dolar).toLocaleString('es-CO');
-    document.getElementById('eq-factor').textContent = caida_factor.toFixed(2);
-    document.getElementById('eq-gastos').textContent = subida_gastos.toFixed(2);
+    const fmtImp = n => (n >= 0 ? '+' : '') + fmt(n/2);
+    document.getElementById('eq-bolsa').textContent  = fmtImp(imp_bolsa);
+    document.getElementById('eq-dolar').textContent  = fmtImp(imp_dolar);
+    document.getElementById('eq-factor').textContent = fmtImp(imp_factor);
+    document.getElementById('eq-gastos').textContent = fmtImp(imp_gastos);
 
     // ── SENSIBILIDAD ─────────────────────────────────────────────────
     const vars = [
